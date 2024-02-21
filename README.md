@@ -9,6 +9,12 @@ Main includes two files:
 1. Installer.exe, which can be used standalone for the installation of the recognizers [SileroVAD-Elan](https://github.com/l12maro/SileroVAD-Elan) and [Voxseg-ELAN](https://github.com/coxchristopher/voxseg-elan).
 2. Installer.nsi, which can be used to replicate the creation of the installer.
 
+### SileroVAD-ELAN
+The branch SileroVAD-ELAN includes the .spec file used to bundle the SileroVAD-ELAN recognizer into an executable file.
+
+### Voxseg-elan
+The branch Voxseg-elan includes the .spec file used to bundle the Voxseg-elan recognizer into an executable file.
+
 ### Create an installer
 
 *Requirements*
@@ -44,7 +50,7 @@ pip install pyinstaller
 
 4. Bundle data files
 
-4.1. Run pyinstaller on .spec file provided. You should find the .exe file within .\dist.
+4.1. Run pyinstaller on .spec file provided in each of the branches. You should find the .exe file within .\dist.
 ```
 pyinstaller -F <spec file>
 ```
