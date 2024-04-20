@@ -58,7 +58,7 @@ Function .onInit
     Push $0
     Push $1
 
-    ; Search for ELAN_ folder in Program Files
+    ; Search for ELAN_ folder in Program Files for systemwide installation
     FindFirst $0 $1 "$PROGRAMFILES64\ELAN*"
     StrCmp $1 "" not_found found
 	
@@ -68,8 +68,20 @@ Function .onInit
 		Goto end
 
 	not_found:
-		StrCpy $INSTDIR "$PROGRAMFILES64\"
-		FindClose $0
+		; Search for ELAN_ folder in User data
+		FindFirst $2 $3 "$AppData\Local\ELAN*"
+    		StrCmp $3 "" yes no
+			
+			yes: 
+				StrCpy $INSTDIR "$AppData\Local\$3\app\extensions"
+				FindClose $2
+				Pop $3
+				Pop $2
+				Goto end
+
+			no:
+				StrCpy $INSTDIR "$PROGRAMFILES64\"
+				FindClose $2
 
 	end:
 		Pop $1
