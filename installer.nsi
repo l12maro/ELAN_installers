@@ -3,11 +3,22 @@
 ; This script installs the SileroVAD-ELAN extension and uninstaller. 
 ; It will install into a directory that the user selects. 
  
+
 ;-------------------------------- 
  
-!include Locate.nsh
+!verbose push
+!verbose 4
+!verbose pop
+!include "Locate.nsh"
 !include "Sections.nsh"
+!include "FileFunc.nsh"
+!include "LogicLib.nsh"
+!include "WordFunc.nsh"
+!include "TextFunc.nsh"
+
 !addplugindir "C:\Program Files (x86)\NSIS\Plugins\"
+
+SetDatablockOptimize on
  
 ; The name of the installer 
 Name "Installer" 
@@ -52,52 +63,79 @@ UninstPage instfiles
 ; Locate the default ELAN directory (newest version):
 Function .onInit
 
-    Var /GLOBAL INSTALL_PATH
-    StrCpy $INSTALL_PATH "" ; Initialize the installation path variable
-
-    Push $0
-    Push $1
+    Var /GLOBAL ELAN_PATH
+    Var /GLOBAL ELAN_VERSION
+    Var /GLOBAL NEWEST_VERSION
+    ; Initialize the installation path variables
+    StrCpy $ELAN_PATH "" 
+    StrCpy $ELAN_VERSION ""
+    StrCpy $NEWEST_VERSION "0.1"
+    
 
     ; Search for ELAN_ folder in Program Files for systemwide installation
-    FindFirst $0 $1 "$PROGRAMFILES64\ELAN*"
-    StrCmp $1 "" not_found found
+    ${Locate::Open} "C:\" '/F=0 /D=1 /-SD=NAME /M=ELAN_* /B=1' $0
+	StrCmp $0 0 0 loop
+	MessageBox MB_OK "Error" IDOK close
+    
+loop:
+	${locate::Find} $0 $1 $2 $3 $4 $5 $6
+		
+	; Validate and edit installation path
+	StrCpy $ELAN_PATH $1 	 
+	StrCpy $ELAN_VERSION $3
+	Call ValidateELAN
 	
-	found:
-		StrCpy $INSTDIR "$PROGRAMFILES64\$1\app\extensions"
-		FindClose $0
-		Goto end
-
-	not_found:
-		; Search for ELAN_ folder in User data
-		FindFirst $2 $3 "$AppData\Local\ELAN*"
-    		StrCmp $3 "" yes no
-			
-			yes: 
-				StrCpy $INSTDIR "$AppData\Local\$3\app\extensions"
-				FindClose $2
-				Pop $3
-				Pop $2
-				Goto end
-
-			no:
-				StrCpy $INSTDIR "$PROGRAMFILES64\"
-				FindClose $2
-
-	end:
-		Pop $1
-		Pop $0
-
-;  Var /GLOBAL ROOT
-;  StrCpy $ROOT "C:"
-;  ${Locate::Open} '$ROOT' '/F=0 /D=1 /M=ELAN_[0-9]*\.[0-9]*\\app\\extensions /G=1 /B=1' $0
-;  ${Locate::Open} '$ROOT' '/F=0 /D=1 /M=\\app\\extensions /G=1 /B=1' $0
-;  ${Locate::Find} $0 $1 $2 $3 $4 $5 $6
-   ; Set as default installation directory
-;  StrCpy "$INSTDIR" "$1"
-;  ${locate::Close} "$0";
-
+	StrCmp $1 '' close loop ; No more results
+	
+close:
+	${locate::Close} $0
+	${locate::Unload}
 
 FunctionEnd
+
+;----------------------------------
+
+Function ValidateELAN
+
+; Extract version function
+StrCpy $R0 $ELAN_VERSION
+StrCpy $R1 0
+loop:
+    IntOp $R1 $R1 - 1 ; Character offset, from end of string
+    StrCpy $R2 $R0 1 $R1 ; Read 1 character into $R2, -$R1 offset from end
+    StrCmp $R2 '_' found
+    StrCmp $R2 '' stop loop ; No more characters or try again
+found:
+    IntOp $R1 $R1 + 1 ; Don't include _ in extracted string
+stop:
+StrCpy $R2 $R0 "" $R1 ; We know the length, extract final string part
+
+
+
+; Check that resulting string is a valid version function
+
+${StrFilter} $R2 "13" "." "" $R3
+
+${If} $R2 == $R3
+	; Compare version function with previous if exists
+	${VersionCompare} $R2 $NEWEST_VERSION $R4
+	; If version is newer, edit path and version number
+	${AndIf} $R4 == "1"
+		StrCpy $NEWEST_VERSION $R2
+		StrCpy "$INSTDIR" "$ELAN_PATH\app\extensions"
+
+${EndIf}
+
+; Close function
+pop $R0
+pop $R1
+pop $R2
+pop $R3
+pop $R4
+
+FunctionEnd
+
+;---------------------------------
 
 
 Section "SileroVAD-ELAN" SEC_SIL
@@ -150,6 +188,8 @@ Section "un.Uninstall.SILDIR"
   RMDir "$SILDIR"
  
 SectionEnd 
+
+;----------------------------------
 
 Section "Voxseg-elan" SEC_VOX
  
@@ -204,3 +244,4 @@ Section "un.Uninstall.VOXDIR"
   RMDir "$VOXDIR"
  
 SectionEnd 
+
