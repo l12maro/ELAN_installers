@@ -15,10 +15,13 @@
 !include "LogicLib.nsh"
 !include "WordFunc.nsh"
 !include "TextFunc.nsh"
+!include "ReplaceInFile.nsh"
 
 !addplugindir "C:\Program Files (x86)\NSIS\Plugins\"
 
 SetDatablockOptimize on
+
+SetCompressor /SOLID lzma
  
 ; The name of the installer 
 Name "Installer" 
@@ -66,6 +69,7 @@ Function .onInit
     Var /GLOBAL ELAN_PATH
     Var /GLOBAL ELAN_VERSION
     Var /GLOBAL NEWEST_VERSION
+
     ; Initialize the installation path variables
     StrCpy $ELAN_PATH "" 
     StrCpy $ELAN_VERSION ""
@@ -154,8 +158,27 @@ Section "SileroVAD-ELAN" SEC_SIL
   ;     user's chosen install directory
   SetOutPath "$SILDIR" 
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\SileroVAD-Elan\sileroVAD-elan.cmdi" 
+  File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\SileroVAD-Elan\sileroVAD-elan.sh" 
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\SileroVAD-Elan\README.md"
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\SileroVAD-Elan\dist\sileroVAD-elan.exe"  
+
+  ; change text in cmdi
+
+  StrCpy $OLD_STR 'sileroVAD-elan.exe'
+  StrCpy $FST_OCC 1
+  StrCpy $NR_OCC 1
+  StrCpy $REPLACEMENT_STR '$SILDIR\sileroVAD-elan.exe'
+  StrCpy $FILE_TO_MODIFIED '$SILDIR\sileroVAD-elan.cmdi'
+ 
+!insertmacro ReplaceInFile $OLD_STR $FST_OCC $NR_OCC $REPLACEMENT_STR $FILE_TO_MODIFIED ;job done
+
+  StrCpy $OLD_STR 'sileroVAD-elan.sh'
+  StrCpy $FST_OCC all
+  StrCpy $NR_OCC all
+  StrCpy $REPLACEMENT_STR '$SILDIR\sileroVAD-elan.sh'
+  StrCpy $FILE_TO_MODIFIED '$SILDIR\sileroVAD-elan.cmdi'
+ 
+!insertmacro ReplaceInFile $OLD_STR $FST_OCC $NR_OCC $REPLACEMENT_STR $FILE_TO_MODIFIED ;job done
    
   ; Write the uninstall keys for Windows 
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SileroVAD-ELAN" "DisplayName" "SileroVAD-ELAN" 
@@ -181,6 +204,7 @@ Section "un.Uninstall.SILDIR"
   ; Remove the newly installed files and the uninstaller executable
   Delete "$SILDIR\sileroVAD-elan.exe" 
   Delete "$SILDIR\sileroVAD-elan.cmdi" 
+  Delete "$SILDIR\sileroVAD-elan.sh" 
   Delete "$SILDIR\README.md"
   Delete "$SILDIR\uninstall_SileroVAD-elan.exe" 
   
@@ -207,11 +231,29 @@ Section "Voxseg-elan" SEC_VOX
   ;     user's chosen install directory
   SetOutPath "$VOXDIR" 
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\voxseg-elan\voxseg-elan.cmdi" 
+  File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\voxseg-elan\voxseg-elan.sh" 
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\voxseg-elan\README.md"
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\voxseg-elan\dist\voxseg-elan.exe"
   File "C:\Users\Lorena\Desktop\No_copia\RA\ELAN_6.4\app\extensions\voxseg-elan\ffmpeg.exe"  
 
-   
+  ; change text in cmdi
+
+  StrCpy $OLD_STR 'voxseg-elan.exe'
+  StrCpy $FST_OCC 1
+  StrCpy $NR_OCC 1
+  StrCpy $REPLACEMENT_STR '$VOXDIR\voxseg-elan.exe'
+  StrCpy $FILE_TO_MODIFIED '$VOXDIR\voxseg-elan.cmdi'
+ 
+!insertmacro ReplaceInFile $OLD_STR $FST_OCC $NR_OCC $REPLACEMENT_STR $FILE_TO_MODIFIED ;job done
+
+  StrCpy $OLD_STR 'voxseg-elan.sh'
+  StrCpy $FST_OCC all
+  StrCpy $NR_OCC all
+  StrCpy $REPLACEMENT_STR '$VOXDIR\voxseg-elan.sh'
+  StrCpy $FILE_TO_MODIFIED '$VOXDIR\voxseg-elan.cmdi'
+ 
+!insertmacro ReplaceInFile $OLD_STR $FST_OCC $NR_OCC $REPLACEMENT_STR $FILE_TO_MODIFIED ;job done
+
   ; Write the uninstall keys for Windows 
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\voxseg-elan" "DisplayName" "voxseg-elan" 
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\voxseg-elan" "UninstallString" '"$VOXDIR\uninstall_voxseg-elan.exe"' 
@@ -235,7 +277,8 @@ Section "un.Uninstall.VOXDIR"
  
   ; Remove the newly installed files and the uninstaller executable
   Delete "$VOXDIR\voxseg-elan.exe" 
-  Delete "$VOXDIR\voxseg-elan.cmdi" 
+  Delete "$VOXDIR\voxseg-elan.cmdi"
+  Delete "$VOXDIR\voxseg-elan.sh"
   Delete "$VOXDIR\README.md"
   Delete "$VOXDIR\ffmpeg.exe"
   Delete "$VOXDIR\uninstall_voxseg-elan.exe" 
@@ -245,3 +288,4 @@ Section "un.Uninstall.VOXDIR"
  
 SectionEnd 
 
+;-------------------------------
